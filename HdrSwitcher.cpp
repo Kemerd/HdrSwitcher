@@ -11,6 +11,8 @@
 
 // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig#examples
 
+static int monitor_number = 0;
+
 [[noreturn]] void ThrowWinErr(
     std::string_view message,
     HRESULT errCode,
@@ -193,8 +195,8 @@ void ChangeHDR(Operation oper) {
   auto pathArray = QueryDisplayConfigImpl();
 
   // Get the first display's adapter ID and source ID
-  LUID adapterId = pathArray.at(0).targetInfo.adapterId;
-  UINT32 targetId = pathArray.at(0).targetInfo.id;
+  LUID adapterId = pathArray.at(monitor_number).targetInfo.adapterId;
+  UINT32 targetId = pathArray.at(monitor_number).targetInfo.id;
   PrintDisplayInfo(adapterId, targetId);
 
   // Get the current advanced color info of the first display
@@ -245,6 +247,9 @@ int main(int argc, char** argv) {
     app.add_subcommand("toggle", "Toggle HDR settings")->callback([] {
       ChangeHDR(Operation::toggle);
     });
+
+    app.add_option("--mon", monitor_number,
+                   "Specify what monitor number to use from array");
 
     CLI11_PARSE(app, argc, argv);
   } catch (const std::exception& e) {
